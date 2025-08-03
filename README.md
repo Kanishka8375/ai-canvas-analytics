@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/81de7f9f-79ac-47cd-88cd-7d6f678e0aae
+**URL**:Click here (https://preview--ai-canvas-analytics.lovable.app/)
 
 ## How can I edit this code?
 
