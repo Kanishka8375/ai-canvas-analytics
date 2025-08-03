@@ -2,6 +2,10 @@
 
 ## Project info
 
+##Netlify URL:
+
+**URL**: Click Here (https://admybrand-ai-dashboard.netlify.app/)
+
 **URL**:Click here (https://preview--ai-canvas-analytics.lovable.app/)
 
 ## How can I edit this code?
