@@ -12,13 +12,15 @@ import {
   tableData,
   getRandomTrendData
 } from "@/lib/mockData";
-import { Sparkles, BarChart3, Calendar, Download, RefreshCw } from "lucide-react";
+import { Sparkles, BarChart3, Calendar, Download, RefreshCw, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [realTimeData, setRealTimeData] = useState(getRandomTrendData());
+  const { theme, setTheme } = useTheme();
 
   // Simulate real-time updates
   useEffect(() => {
@@ -38,6 +40,31 @@ const Index = () => {
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
+  };
+
+  const handleExportReport = () => {
+    const csvContent = [
+      ['Metric', 'Value'],
+      ...metricsData.map(m => [m.title, m.value]),
+      [''],
+      ['Traffic Source', 'Users', 'Sessions', 'Revenue', 'Conversion Rate', 'Date'],
+      ...tableData.map(row => [
+        row.source,
+        row.users,
+        row.sessions,
+        row.revenue,
+        `${row.conversionRate}%`,
+        row.date
+      ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `admybrand-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -68,6 +95,17 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className={cn(
@@ -82,7 +120,10 @@ const Index = () => {
                 <Calendar className="h-4 w-4 mr-2" />
                 Last 30 days
               </Button>
-              <Button className="bg-gradient-primary hover:opacity-90 transition-opacity">
+              <Button 
+                className="bg-gradient-primary hover:opacity-90 transition-opacity"
+                onClick={handleExportReport}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
