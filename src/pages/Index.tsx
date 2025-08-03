@@ -15,6 +15,7 @@ import {
 import { Sparkles, BarChart3, Calendar, Download, RefreshCw, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import jsPDF from 'jspdf';
 
 const Index = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -43,28 +44,71 @@ const Index = () => {
   };
 
   const handleExportReport = () => {
-    const csvContent = [
-      ['Metric', 'Value'],
-      ...metricsData.map(m => [m.title, m.value]),
-      [''],
-      ['Traffic Source', 'Users', 'Sessions', 'Revenue', 'Conversion Rate', 'Date'],
-      ...tableData.map(row => [
-        row.source,
-        row.users,
-        row.sessions,
-        row.revenue,
-        `${row.conversionRate}%`,
-        row.date
-      ])
-    ].map(row => row.join(',')).join('\n');
+    const pdf = new jsPDF();
+    const date = new Date().toLocaleDateString();
     
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `admybrand-report-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    // Header
+    pdf.setFontSize(20);
+    pdf.setTextColor(59, 130, 246); // Primary blue
+    pdf.text('ADmyBRAND Insights Report', 20, 30);
+    
+    pdf.setFontSize(12);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(`Generated on: ${date}`, 20, 40);
+    
+    // Metrics Section
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Key Metrics', 20, 60);
+    
+    let yPosition = 75;
+    metricsData.forEach((metric, index) => {
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`${metric.title}:`, 25, yPosition);
+      pdf.setTextColor(59, 130, 246);
+      pdf.text(metric.value, 100, yPosition);
+      yPosition += 15;
+    });
+    
+    // Traffic Sources Section
+    yPosition += 10;
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Traffic Sources Performance', 20, yPosition);
+    yPosition += 20;
+    
+    // Table headers
+    pdf.setFontSize(10);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Source', 25, yPosition);
+    pdf.text('Users', 70, yPosition);
+    pdf.text('Sessions', 100, yPosition);
+    pdf.text('Revenue', 135, yPosition);
+    pdf.text('Conv. Rate', 170, yPosition);
+    yPosition += 10;
+    
+    // Table data
+    pdf.setTextColor(0, 0, 0);
+    tableData.slice(0, 15).forEach((row) => { // Limit to first 15 rows
+      if (yPosition > 270) { // New page if needed
+        pdf.addPage();
+        yPosition = 30;
+      }
+      pdf.text(row.source, 25, yPosition);
+      pdf.text(row.users.toString(), 70, yPosition);
+      pdf.text(row.sessions.toString(), 100, yPosition);
+      pdf.text(`$${row.revenue.toLocaleString()}`, 135, yPosition);
+      pdf.text(`${row.conversionRate}%`, 170, yPosition);
+      yPosition += 12;
+    });
+    
+    // Footer
+    pdf.setFontSize(8);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('ADmyBRAND Insights v2.0 - Advanced Analytics Dashboard', 20, 285);
+    
+    pdf.save(`admybrand-report-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -96,12 +140,16 @@ const Index = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="relative overflow-hidden group"
               >
-                {theme === "dark" ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
+                <div className="relative z-10 flex items-center transition-transform duration-300 group-hover:scale-110">
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-100 to-blue-100 dark:from-slate-800 dark:to-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Button>
               <Button
                 variant="outline"
